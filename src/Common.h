@@ -1,0 +1,12 @@
+#pragma once
+
+#include <iostream>
+#include <Windows.h>
+#include <TlHelp32.h>
+#include <thread>
+#include <chrono>
+#include <memory>
+
+#include "resource.h"
+#include "SIDefs.h"
+#include "SIErrors.h"

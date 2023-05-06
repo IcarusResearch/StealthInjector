@@ -1,0 +1,6 @@
+[submodule "Winternals"]
+	path = Winternals
+	url = https://github.com/IcarusResearch/Winternals.git
+[submodule "WIL"]
+	path = WIL
+	url = https://github.com/microsoft/wil.git
