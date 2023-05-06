@@ -21,21 +21,19 @@ SISTATUS Process::FindById(InjectionContext& ctx, std::shared_ptr<Process>& pPro
 }
 
 SISTATUS Process::FindByName(InjectionContext& ctx, std::shared_ptr<Process>& pProcOut) {
-	HANDLE hProcSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	wil::unique_handle hProcSnap(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 	DWORD dwPID = 0;
-	if (Process32First(hProcSnap, &procEntry)) {
+	if (Process32First(hProcSnap.get(), &procEntry)) {
 		do {
 			if (!wcscmp(procEntry.szExeFile, ctx.processContext.szProcessName.c_str())) {
 				dwPID = procEntry.th32ProcessID;
 				break;
 			}
-		} while (Process32Next(hProcSnap, &procEntry));
+		} while (Process32Next(hProcSnap.get(), &procEntry));
 	}
-	if (!dwPID) {
-		return SISTATUS::PROCESS_NOT_FOUND;
-	}
+	RETURN_IF_NULL(dwPID, SISTATUS::PROCESS_NOT_FOUND)
 	ctx.processContext.dwProcessId = dwPID;
 	return FindById(ctx, pProcOut);
 }
