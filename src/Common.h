@@ -6,6 +6,7 @@
 #include <thread>
 #include <chrono>
 #include <memory>
+#include <string>
 
 #include "resource.h"
 #include "SIDefs.h"

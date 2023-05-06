@@ -13,7 +13,7 @@ public:
 	HijackStrategy(ProcessContext procContext) : HandleStrategy(procContext) {}
 
 public:
-	virtual SISTATUS RetrieveHandle(wil::shared_handle& pHandle) {
+	virtual SISTATUS RetrieveHandle(wil::shared_handle& pHandle) override {
 		BOOL bTemp;
 		RETURN_IF_NTFAIL(RtlAdjustPrivilege(SE_DEBUG_PRIVILEGE, TRUE, FALSE, &bTemp), SISTATUS::PRIVILEGE_ADJUST_FAILED);
 		ULONG uSize = INITIAL_BUFFER_SIZE;
