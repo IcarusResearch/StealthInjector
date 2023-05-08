@@ -40,6 +40,10 @@ SISTATUS Process::FindByName(InjectionContext& ctx, std::shared_ptr<Process>& pP
 
 Process::Process(wil::shared_handle hProc) : hProc(hProc) {}
 
+const wil::shared_handle Process::Handle() const {
+	return hProc;
+}
+
 SISTATUS Process::FindProcess(ProcessFind processFind, InjectionContext& ctx, std::shared_ptr<Process>& pProcOut) {
 	switch (processFind) {
 		case ProcessFind::BY_ID:

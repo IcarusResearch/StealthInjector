@@ -11,3 +11,4 @@
 #include "resource.h"
 #include "SIDefs.h"
 #include "SIErrors.h"
+#include "Util/SIResult.h"

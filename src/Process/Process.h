@@ -18,8 +18,8 @@ private:
 
 public:
     explicit Process(wil::shared_handle hProc);
+    const wil::shared_handle Handle() const;
 
     static SISTATUS FindProcess(ProcessFind processFind, InjectionContext& ctx, std::shared_ptr<Process>& pProcOut);
 
 } Process, *PProcess;
-
