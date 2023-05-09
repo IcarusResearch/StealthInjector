@@ -63,6 +63,10 @@ public:
         this->pVal = std::make_shared<ResType>(type);
     }
 
+    void SetValue(ResType&& type) {
+        this->pVal = std::make_shared<ResType>(std::move(type));
+    }
+
     template <typename ValType>
     bool RefreshStatus(const ValType& valType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
@@ -117,6 +121,19 @@ public:
         if (!IsSuccess()) {
             throw SIResultException(status);
         }
+    }
+
+    // maybe do a Map function like in Java .Map(oldType -> new NewType(oldType));
+    template <typename NewType, typename ...Args>
+    SIResult<NewType> SwitchType(bool bTypeAsArg, Args&&... ctorArgs) {
+        SIResult<NewType> result;
+        if (!IsSuccess()) {
+            result.SetStatus(status);
+        } else if (bTypeAsArg) {
+            NewType a(*pVal.get(), std::forward<Args>(ctorArgs)...);
+            result.SetValue(std::move(a));
+        }
+        return result;
     }
 
     static SIResult<ResType> Direct(const ResType& resType, SISTATUS statusErr) {

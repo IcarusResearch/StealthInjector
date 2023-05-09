@@ -3,24 +3,19 @@
 #include "Handle/HijackStrategy.h"
 #include "Handle/OpenProcessStrategy.h"
 
-//TODO error check invalid pids
-SISTATUS Process::FindById(InjectionContext& ctx, std::shared_ptr<Process>& pProcOut) {
-	wil::shared_handle pHandle;
-	SISTATUS siStatus = SISTATUS::SUCCESS;
+SIResult<Process> Process::FindById(InjectionContext& ctx) {
+	SIResult<wil::shared_handle> result;
 	switch (ctx.handleStrategy) {
 		case HandleStrat::OPEN_PROCESS:
-			siStatus = OpenProcessStrategy(ctx.processContext).RetrieveHandle(pHandle);
+			result = OpenProcessStrategy(ctx.processContext).RetrieveHandle();
 			break;
 		case HandleStrat::HIJACK:
-			siStatus = HijackStrategy(ctx.processContext).RetrieveHandle(pHandle);
+			result = HijackStrategy(ctx.processContext).RetrieveHandle();
 	}
-	if (siStatus == SISTATUS::SUCCESS) {
-		pProcOut.reset(new Process(pHandle));
-	}
-	return siStatus;
+	return result.SwitchType<Process>(true, ctx);
 }
 
-SISTATUS Process::FindByName(InjectionContext& ctx, std::shared_ptr<Process>& pProcOut) {
+SIResult<Process> Process::FindByName(InjectionContext& ctx) {
 	wil::unique_handle hProcSnap(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
@@ -35,20 +30,32 @@ SISTATUS Process::FindByName(InjectionContext& ctx, std::shared_ptr<Process>& pP
 	}
 	RETURN_IF_NULL(dwPID, SISTATUS::PROCESS_NOT_FOUND)
 	ctx.processContext.dwProcessId = dwPID;
-	return FindById(ctx, pProcOut);
+	return FindById(ctx);
 }
 
-Process::Process(wil::shared_handle hProc) : hProc(hProc) {}
+Process::Process(wil::shared_handle hProc, InjectionContext& ctx) : hProc(hProc), ctx(ctx) {
+	switch (ctx.backendStrategy) {
+		case BackendStrat::WIN_API:
+			pBackend = std::make_unique<WinAPIExecutionBackend>(hProc);
+			return;
+		case BackendStrat::NT_API:
+			pBackend = std::make_unique<NTExecutionBackend>(hProc);
+	}
+}
 
 const wil::shared_handle Process::Handle() const {
 	return hProc;
 }
 
-SISTATUS Process::FindProcess(ProcessFind processFind, InjectionContext& ctx, std::shared_ptr<Process>& pProcOut) {
+const std::unique_ptr<ExecutionBackend>& Process::ExecutionBackend() {
+	return pBackend;
+}
+
+SIResult<Process> Process::FindProcess(ProcessFind processFind, InjectionContext& ctx) {
 	switch (processFind) {
 		case ProcessFind::BY_ID:
-			return FindById(ctx, pProcOut);
+			return FindById(ctx);
 		case ProcessFind::BY_NAME:
-			return FindByName(ctx, pProcOut);
+			return FindByName(ctx);
 	}
 }

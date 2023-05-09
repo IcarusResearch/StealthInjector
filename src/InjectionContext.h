@@ -9,7 +9,13 @@ typedef enum class HandleStrat {
 	OPEN_PROCESS
 } HandleStrat, *PHandleStrat;
 
+typedef enum class BackendStrat {
+	WIN_API,
+	NT_API
+} BackendStrat, *PBackendStrat;
+
 struct InjectionContext {
 	HandleStrat handleStrategy;
+	BackendStrat backendStrategy;
 	ProcessContext processContext;
 };
