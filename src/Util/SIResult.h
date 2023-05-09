@@ -110,7 +110,7 @@ public:
         return pVal;
     }
 
-    const ResType& Value() const {
+    ResType& Value() const {
         if (!pVal) {
             throw std::logic_error("Attempt to access null value");
         }
@@ -134,6 +134,14 @@ public:
             result.SetValue(std::move(a));
         }
         return result;
+    }
+
+    bool operator!() const {
+        return !IsSuccess();
+    }
+
+    ResType& operator()() const {
+        return Value();
     }
 
     static SIResult<ResType> Direct(const ResType& resType, SISTATUS statusErr) {
@@ -190,6 +198,10 @@ public:
         if (!IsSuccess()) {
             throw SIResultException(status);
         }
+    }
+
+    bool operator!() const {
+        return !IsSuccess();
     }
 
     template <typename ValType>
@@ -274,6 +286,10 @@ public:
         if (!IsSuccess()) {
             throw SIResultException(status);
         }
+    }
+
+    bool operator!() const {
+        return !IsSuccess();
     }
 
     static SIPtrResult<ResPtrType, Deleter> Direct(const std::add_pointer_t<ResPtrType> resPtrType, SISTATUS statusErr, Deleter deleter = Deleter{}) {

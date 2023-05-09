@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <mutex>
+#include <vector>
 
 #include "resource.h"
 #include "SIDefs.h"

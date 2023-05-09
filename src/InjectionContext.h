@@ -2,20 +2,15 @@
 
 #include "Common.h"
 #include "Handle/HandleStrategy.h"
+#include "PE/PortableExecutable.h"
 #include "Process/ProcessContext.h"
 
-typedef enum class HandleStrat {
-	HIJACK,
-	OPEN_PROCESS
-} HandleStrat, *PHandleStrat;
+typedef UINT32 INJECTION_FLAGS;
 
-typedef enum class BackendStrat {
-	WIN_API,
-	NT_API
-} BackendStrat, *PBackendStrat;
-
-struct InjectionContext {
-	HandleStrat handleStrategy;
-	BackendStrat backendStrategy;
+typedef struct InjectionContext {
 	ProcessContext processContext;
-};
+	std::vector<std::shared_ptr<PortableExecutable>> vModules;
+	ULONG uInitialDelay = 0;
+	ULONG uDelayBetween = 0;
+	INJECTION_FLAGS uInjFlags = 0;
+} InjectionContext, *PInjectionContext;

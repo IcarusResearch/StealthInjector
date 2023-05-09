@@ -4,27 +4,26 @@
 #include "InjectionContext.h"
 #include "ExecutionBackend/Strategies.h"
 
-typedef enum class ProcessFind {
-    BY_ID,
-    BY_NAME
-} ProcessFind, *PProcessFind;
-
 typedef class Process {
 
 private:
     wil::shared_handle hProc;
-    InjectionContext ctx;
+    ProcessContext ctx;
     std::unique_ptr<ExecutionBackend> pBackend;
+    Architecture arch;
 
-    static SIResult<Process> FindById(InjectionContext& ctx);
-    static SIResult<Process> FindByName(InjectionContext& ctx);
+    static SIResult<Process> FindById(ProcessContext& ctx);
+    static SIResult<Process> FindByName(ProcessContext& ctx);
 
 public:
-    explicit Process(wil::shared_handle hProc, InjectionContext& ctx);
-    Process(Process&& fkOff) = default;
+    explicit Process(wil::shared_handle hProc, ProcessContext& ctx);
+    Process(Process&& process) = default;
     const wil::shared_handle Handle() const;
+    const Architecture& Arch() const;
     const std::unique_ptr<ExecutionBackend>& ExecutionBackend();
 
-    static SIResult<Process> FindProcess(ProcessFind processFind, InjectionContext& ctx);
+    SIVoidResult InjectModules(const InjectionStrat& injectionStrat, const InjectionContext& injectionCtx);
+
+    static SIResult<Process> FindProcess(ProcessFind processFind, ProcessContext& ctx);
 
 } Process, *PProcess;

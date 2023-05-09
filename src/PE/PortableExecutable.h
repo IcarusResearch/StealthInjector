@@ -26,4 +26,7 @@ public:
 	SIAPI SISTATUS LoadFromData(PVOID pData);
 	SIAPI SISTATUS Reset();
 
+	static std::shared_ptr<PortableExecutable> CreateFromFile(PCTCH szFilePath);
+	static std::shared_ptr<PortableExecutable> CreateFromData(PVOID pData);
+
 } PortableExecutable, *PPortableExecutable;
