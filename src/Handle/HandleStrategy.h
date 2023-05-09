@@ -10,6 +10,6 @@ protected:
 	HandleStrategy(ProcessContext procContext) : procContext(procContext) {}
 
 public:
-	virtual SISTATUS RetrieveHandle(wil::shared_handle& pHandle) = 0;
+	virtual SIResult<wil::shared_handle> RetrieveHandle() = 0;
 
 };

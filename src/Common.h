@@ -7,6 +7,7 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <mutex>
 
 #include "resource.h"
 #include "SIDefs.h"

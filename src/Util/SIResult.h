@@ -5,6 +5,8 @@
 #include "Winternals.h"
 #include "SIErrors.h"
 
+#define RETURN_ON_ERR(result) if (!result.IsSuccess()) return result
+
 // TODO remove small amounts of duplicate code
 class SIResultException : public std::runtime_error {
 
@@ -53,35 +55,43 @@ public:
         this->status = status;
     }
 
+    void ResetStatus() {
+        status = SISTATUS::SUCCESS;
+    }
+
     void SetValue(const ResType& type) {
         this->pVal = std::make_shared<ResType>(type);
     }
 
     template <typename ValType>
-    void RefreshStatus(const ValType& valType, SISTATUS statusErr) {
+    bool RefreshStatus(const ValType& valType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
             status = SISTATUS::SUCCESS;
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
-    void RefreshValDirect(const ResType& resType, SISTATUS statusErr) {
+    bool RefreshValDirect(const ResType& resType, SISTATUS statusErr) {
         if (Validate<ResType>(resType)) {
             status = SISTATUS::SUCCESS;
             pVal = std::make_shared<ResType>(resType);
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
     template <typename ValType>
-    void RefreshValFrom(const ValType& valType, const ResType& resType, SISTATUS statusErr) {
+    bool RefreshValFrom(const ValType& valType, const ResType& resType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
             status = SISTATUS::SUCCESS;
             pVal = std::make_shared<ResType>(resType);
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
     bool IsSuccess() const {
@@ -141,13 +151,18 @@ public:
         this->status = status;
     }
 
+    void ResetStatus() {
+        status = SISTATUS::SUCCESS;
+    }
+
     template <typename ValType>
-    void RefreshStatus(const ValType& valType, SISTATUS statusErr) {
+    bool RefreshStatus(const ValType& valType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
             status = SISTATUS::SUCCESS;
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
     bool IsSuccess() const {
@@ -188,31 +203,42 @@ public:
     SIPtrResult(const std::add_pointer_t<ResPtrType> resPtrType) : status(SISTATUS::SUCCESS), pVal(resPtrType, Deleter{}) {}
     SIPtrResult(const std::add_pointer_t<ResPtrType> resPtrType, Deleter deleter) : status(SISTATUS::SUCCESS), pVal(resPtrType, deleter) {}
 
+    void SetStatus(const SISTATUS& status) {
+        this->status = status;
+    }
+
+    void ResetStatus() {
+        status = SISTATUS::SUCCESS;
+    }
+
     template <typename ValType, typename = std::enable_if_t<!std::is_pointer_v<ValType>>>
-    void RefreshStatus(const ValType& valType, SISTATUS statusErr) {
+    bool RefreshStatus(const ValType& valType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
             status = SISTATUS::SUCCESS;
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
     template <typename ValType, typename = std::enable_if_t<std::is_pointer_v<ValType>>>
-    void RefreshStatus(const ValType valType, SISTATUS statusErr) {
+    bool RefreshStatus(const ValType valType, SISTATUS statusErr) {
         if (Validate<ValType>(valType)) {
             status = SISTATUS::SUCCESS;
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
 
-    void RefreshValDirect(const std::add_pointer_t<ResPtrType> resPtrType, SISTATUS statusErr) {
+    bool RefreshValDirect(const std::add_pointer_t<ResPtrType> resPtrType, SISTATUS statusErr) {
         if (Validate<std::add_pointer_t<ResPtrType>>(resPtrType)) {
             status = SISTATUS::SUCCESS;
             pVal = std::shared_ptr<ResPtrType>(resPtrType, Deleter{});
-            return;
+            return true;
         }
         status = statusErr;
+        return false;
     }
     
     bool IsSuccess() const {

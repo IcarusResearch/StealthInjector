@@ -8,11 +8,9 @@ public:
 	OpenProcessStrategy(ProcessContext procContext) : HandleStrategy(procContext) {}
 
 public:
-	virtual SISTATUS RetrieveHandle(wil::shared_handle& pHandle) override {
+	virtual SIResult<wil::shared_handle> RetrieveHandle() override {
 		HANDLE hProc = OpenProcess(procContext.dwDesiredAccess, FALSE, procContext.dwProcessId);
-		RETURN_IF_NULL(hProc, SISTATUS::OPEN_PROCESS_FAILED);
-		pHandle.reset(hProc);
-		return SISTATUS::SUCCESS;
+		return SIResult<wil::shared_handle>::From(hProc, wil::shared_handle(hProc), SISTATUS::OPEN_PROCESS_FAILED);
 	}
 
 };
