@@ -55,6 +55,10 @@ public:
         this->status = status;
     }
 
+    const SISTATUS& GetStatus() {
+        return status;
+    }
+
     void ResetStatus() {
         status = SISTATUS::SUCCESS;
     }
@@ -176,6 +180,10 @@ public:
         this->status = status;
     }
 
+    const SISTATUS& GetStatus() {
+        return status;
+    }
+
     void ResetStatus() {
         status = SISTATUS::SUCCESS;
     }
@@ -188,6 +196,11 @@ public:
         }
         status = statusErr;
         return false;
+    }
+
+    bool RefreshStatus(const SIResult<void> result) {
+        status = result.status;
+        return IsSuccess();
     }
 
     bool IsSuccess() const {
@@ -236,6 +249,10 @@ public:
         this->status = status;
     }
 
+    const SISTATUS& GetStatus() {
+        return status;
+    }
+
     void ResetStatus() {
         status = SISTATUS::SUCCESS;
     }
@@ -274,7 +291,7 @@ public:
         return status == SISTATUS::SUCCESS;
     }
 
-    const ResPtrType* RawPtr() const {
+    ResPtrType* RawPtr() const {
         return pVal.get();
     }
 
