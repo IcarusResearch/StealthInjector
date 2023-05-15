@@ -9,7 +9,7 @@ typedef class Process {
 private:
     wil::shared_handle hProc;
     ProcessContext ctx;
-    std::unique_ptr<ExecutionBackend> pBackend;
+    std::shared_ptr<ExecutionBackend> pBackend;
     Architecture arch;
 
     static SIResult<Process> FindById(ProcessContext& ctx);
@@ -20,7 +20,7 @@ public:
     Process(Process&& process) = default;
     const wil::shared_handle Handle() const;
     const Architecture& Arch() const;
-    const std::unique_ptr<ExecutionBackend>& ExecutionBackend();
+    const std::shared_ptr<ExecutionBackend> ExecutionBackend();
 
     SIVoidResult InjectModules(const InjectionStrat& injectionStrat, const InjectionContext& injectionCtx);
 
