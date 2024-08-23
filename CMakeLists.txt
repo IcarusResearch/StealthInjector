@@ -5,11 +5,14 @@ set(PROJECT_NAME "StealthInjector")
 project(${PROJECT_NAME} CXX ASM_MASM)
 
 set(SI_SOURCES_DIR "${PROJECT_SOURCE_DIR}/src")
+set(ASMJIT_DIR "${PROJECT_SOURCE_DIR}/AsmJit")
 
 add_definitions(-DUNICODE -D_UNICODE)
 add_compile_definitions(SI_COMPILE)
 
 message(STATUS "Building ${PROJECT_NAME}...")
+
+include("${ASMJIT_DIR}/CMakeLists.txt")
 
 file(GLOB_RECURSE SI_SOURCES
 	"${SI_SOURCES_DIR}/**.cpp"
@@ -29,3 +32,5 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	"${PROJECT_SOURCE_DIR}/Winternals"
 	"${PROJECT_SOURCE_DIR}/WIL/include/wil"
 )
+
+target_link_libraries(${PROJECT_NAME} asmjit ${ASMJIT_DEPS})

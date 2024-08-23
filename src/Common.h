@@ -9,8 +9,13 @@
 #include <string>
 #include <mutex>
 #include <vector>
+#include <map>
+#include <exception>
 
 #include "resource.h"
 #include "SIDefs.h"
 #include "SIErrors.h"
-#include "Util/SIResult.h"
+#include "SIException.h"
+#include "PE/SharedResource.h"
+
+#include <asmjit/asmjit.h>

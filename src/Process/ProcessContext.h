@@ -8,4 +8,6 @@ typedef struct ProcessContext {
     std::wstring szProcessName;
     HandleStrat handleStrategy;
     BackendStrat backendStrategy;
+    AllocationStrat allocationStrategy;
+    ThreadSelector threadSelector;
 } ProcessContext, *PProcessContext;

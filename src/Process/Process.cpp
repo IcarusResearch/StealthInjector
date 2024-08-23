@@ -2,21 +2,21 @@
 
 #include "Handle/HijackStrategy.h"
 #include "Handle/OpenProcessStrategy.h"
+#include "Injection/Injection.h"
 #include "Util/WinUtil.h"
 
-SIResult<Process> Process::FindById(ProcessContext& ctx) {
-	SIResult<wil::shared_handle> result;
+// TODO check if process with pid exists
+Process Process::FindById(ProcessContext& ctx) {
 	switch (ctx.handleStrategy) {
 		case HandleStrat::OPEN_PROCESS:
-			result = OpenProcessStrategy(ctx).RetrieveHandle();
-			break;
+			return Process(OpenProcessStrategy(ctx).RetrieveHandle(), ctx);
 		case HandleStrat::HIJACK:
-			result = HijackStrategy(ctx).RetrieveHandle();
+			return Process(HijackStrategy(ctx).RetrieveHandle(), ctx);
 	}
-	return result.SwitchType<Process>(true, ctx);
+	throw SIException::Create(SISTATUS::UNSUPPORTED_OPERATION, "Process#FindById");
 }
 
-SIResult<Process> Process::FindByName(ProcessContext& ctx) {
+Process Process::FindByName(ProcessContext& ctx) {
 	wil::unique_handle hProcSnap(CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0));
 	PROCESSENTRY32 procEntry = { 0 };
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
@@ -29,40 +29,65 @@ SIResult<Process> Process::FindByName(ProcessContext& ctx) {
 			}
 		} while (Process32Next(hProcSnap.get(), &procEntry));
 	}
-	RETURN_IF_NULL(dwPID, SISTATUS::PROCESS_NOT_FOUND)
+	CheckError(dwPID, SISTATUS::PROCESS_NOT_FOUND_BY_NAME, "TODO CHANGE THIS TO SUPPORT UNICODE");
 	ctx.dwProcessId = dwPID;
 	return FindById(ctx);
 }
 
 Process::Process(wil::shared_handle hProc, ProcessContext& ctx) : hProc(hProc), ctx(ctx) {
 	arch = GetProcessArch(hProc);
+	dwPid = ctx.dwProcessId;
 	switch (ctx.backendStrategy) {
 		case BackendStrat::WIN_API:
-			pBackend = std::make_unique<WinAPIExecutionBackend>(hProc);
-			return;
+			pBackend = std::make_shared<WinAPIExecutionBackend>(hProc);
+			break;
 		case BackendStrat::NT_API:
-			pBackend = std::make_unique<NTExecutionBackend>(hProc);
+			pBackend = std::make_shared<NTExecutionBackend>(hProc);
 	}
+	pMemManager = std::make_shared<MemoryManager>(ctx.allocationStrategy, pBackend);
+	pThrManager = std::make_shared<ThreadManager>(ctx, hProc, pBackend, pMemManager);
 }
 
 const wil::shared_handle Process::Handle() const {
 	return hProc;
 }
 
+const DWORD Process::PID() const {
+	return dwPid;
+}
+
 const Architecture& Process::Arch() const {
 	return arch;
 }
 
-const std::unique_ptr<ExecutionBackend>& Process::ExecutionBackend() {
+const std::shared_ptr<ExecutionBackend> Process::ExecutionBackend() {
 	return pBackend;
 }
 
-SIVoidResult Process::InjectModules(const InjectionStrat& injectionStrat, const InjectionContext& injectionCtx) {
-
-	return SIVoidResult::Void(0, SISTATUS::FILE_OPEN_FAILED);
+const std::shared_ptr<MemoryManager> Process::MemManager() {
+	return pMemManager;
 }
 
-SIResult<Process> Process::FindProcess(ProcessFind processFind, ProcessContext& ctx) {
+const std::shared_ptr<ThreadManager> Process::ThrManager() {
+	return pThrManager;
+}
+
+void Process::InjectModules(const InjectionStrat& injectionStrat, const InjectionContext& injectionCtx) {
+	std::vector<Module> modules = Injection::Inject(injectionStrat, injectionCtx, this);
+	for (const Module& mod : modules) {
+		vecModules.emplace_back(mod);
+	}
+}
+
+void Process::RCE(const asmjit::CodeBuffer& codeBuf, const ThreadSelector& threadSelector) {
+	return pThrManager->RCE(codeBuf, threadSelector);
+}
+
+void Process::RCE(const asmjit::CodeBuffer& codeBuf) {
+	return RCE(codeBuf, ctx.threadSelector);
+}
+
+Process Process::FindProcess(ProcessFind processFind, ProcessContext& ctx) {
 	switch (processFind) {
 		case ProcessFind::BY_ID:
 			return FindById(ctx);

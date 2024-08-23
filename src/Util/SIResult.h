@@ -38,6 +38,14 @@ static bool Validate<NTSTATUS>(const NTSTATUS& valType) {
 }
 
 template <typename ResType>
+class SIResult;
+
+template <>
+class SIResult<void>;
+
+typedef SIResult<void> SIVoidResult;
+
+template <typename ResType>
 class SIResult {
 
 private:
@@ -227,8 +235,6 @@ public:
 
 };
 
-typedef SIResult<void> SIVoidResult;
-
 // SFINAE pointer equivalent
 template <typename ResPtrType, typename Deleter = std::default_delete<ResPtrType>, typename = std::enable_if_t<!std::is_pointer_v<ResPtrType>>>
 class SIPtrResult {
@@ -255,6 +261,10 @@ public:
 
     void ResetStatus() {
         status = SISTATUS::SUCCESS;
+    }
+
+    SIVoidResult ToVoid() {
+        return SIVoidResult(status);
     }
 
     template <typename ValType, typename = std::enable_if_t<!std::is_pointer_v<ValType>>>
@@ -292,6 +302,10 @@ public:
     }
 
     ResPtrType* RawPtr() const {
+        return pVal.get();
+    }
+
+    ResPtrType* operator->() const {
         return pVal.get();
     }
 
